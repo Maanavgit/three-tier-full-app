@@ -1,0 +1,128 @@
+services:
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+
+    container_name: three-tier-frontend
+
+    ports:
+      - "5024:8080"
+
+    depends_on:
+      backend:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+    mem_limit: 128m
+
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    container_name: three-tier-backend
+
+    expose:
+      - "5000"
+
+    environment:
+      APP_VERSION: "1.0.0"
+
+      DB_HOST: db
+      DB_USER: appuser
+      DB_PASSWORD: apppassword
+      DB_NAME: appdb
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    restart: unless-stopped
+
+    mem_limit: 256m
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:5024/health')"
+        ]
+
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    logging:
+      driver: "json-file"
+
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+
+  db:
+    build:
+      context: ./db
+      dockerfile: Dockerfile
+
+    container_name: three-tier-db
+
+    environment:
+
+      MYSQL_ROOT_PASSWORD: rootpassword
+
+      MYSQL_DATABASE: appdb
+
+      MYSQL_USER: appuser
+
+      MYSQL_PASSWORD: apppassword
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+    restart: unless-stopped
+
+    mem_limit: 512m
+
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "mysqladmin",
+          "ping",
+          "-h",
+          "localhost",
+          "-u",
+          "appuser",
+          "-papppassword"
+        ]
+
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+    logging:
+      driver: "json-file"
+
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+
+volumes:
+
+  mysql_data:

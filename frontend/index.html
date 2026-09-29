@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Three Tier Application</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            text-align: center;
+            padding-top: 100px;
+        }
+
+        .container {
+            background: white;
+            width: 500px;
+            margin: auto;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        #result {
+            margin-top: 20px;
+        }
+
+        #version {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Three Tier Application</h1>
+
+    <p>Frontend: Nginx</p>
+
+    <p>Backend: Flask</p>
+
+    <p>Database: MySQL</p>
+
+    <p>
+        Version:
+        <span id="version">Loading...</span>
+    </p>
+
+    <button onclick="checkBackend()">
+        Check Backend
+    </button>
+
+    <div id="result"></div>
+
+</div>
+
+<script>
+
+async function loadVersion() {
+
+    try {
+
+        const response = await fetch("/api/");
+
+        const data = await response.json();
+
+        document.getElementById("version").textContent = data.version;
+
+    } catch (error) {
+
+        console.error("Version error:", error);
+
+        document.getElementById("version").textContent = "Unavailable";
+
+    }
+
+}
+
+
+async function checkBackend() {
+
+    const result = document.getElementById("result");
+
+    try {
+
+        const response = await fetch("/api/message");
+
+        const data = await response.json();
+
+        result.innerHTML = `
+            <p><strong>${data.message}</strong></p>
+        `;
+
+    } catch (error) {
+
+        console.error("Backend error:", error);
+
+        result.innerHTML = `
+            <p>Backend unavailable</p>
+        `;
+
+    }
+
+}
+
+
+loadVersion();
+
+</script>
+
+</body>
+
+</html>
