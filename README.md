@@ -20,3 +20,4 @@ Frontend → Backend → Database
 
 ```bash
 docker compose up -d --build
+# three-tier-full-app
